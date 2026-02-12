@@ -1,10 +1,9 @@
-import Image from "next/image";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { DashboardCommandCenter } from "@/components/dashboard/DashboardCommandCenter";
 import { getCurrentUser } from "@/lib/auth";
 import { EXP_THRESHOLDS } from "@/lib/experience";
-import { getLevelById } from "@/lib/levels";
+import { getLevelById, LEVELS } from "@/lib/levels";
 import { getUserProgress, listConversationsByUser } from "@/lib/store";
 
 const LEVEL_TITLE: Record<number, string> = {
@@ -20,6 +19,10 @@ const LEVEL_TITLE: Record<number, string> = {
   10: "反PUA宗师",
 };
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
 export default async function DashboardPage() {
   const user = await getCurrentUser();
 
@@ -28,7 +31,12 @@ export default async function DashboardPage() {
   }
 
   const progress = getUserProgress(user.id);
-  const recentBattles = listConversationsByUser(user.id).slice(0, 6);
+  const allBattles = listConversationsByUser(user.id);
+  const recentBattles = allBattles.slice(0, 6);
+  const completedBattles = allBattles.filter((battle) => battle.status === "completed");
+  const winCount = completedBattles.filter((battle) => (battle.total_score ?? 0) >= 60).length;
+  const winRate = completedBattles.length > 0 ? Math.round((winCount / completedBattles.length) * 100) : 0;
+  const clearedCount = Object.keys(progress.level_best_scores).length;
 
   const nextThreshold = EXP_THRESHOLDS[user.level] ?? EXP_THRESHOLDS[EXP_THRESHOLDS.length - 1];
   const previousThreshold = EXP_THRESHOLDS[user.level - 1] ?? 0;
@@ -37,101 +45,53 @@ export default async function DashboardPage() {
       ? Math.round(((user.experience - previousThreshold) / (nextThreshold - previousThreshold)) * 100)
       : 100;
 
+  const averageScore =
+    completedBattles.length > 0
+      ? Math.round(
+          completedBattles.reduce((total, battle) => total + (battle.total_score ?? 0), 0) / completedBattles.length,
+        )
+      : 0;
+
+  const logic = clamp(Math.round(38 + user.level * 6 + averageScore * 0.22), 20, 99);
+  const empathy = clamp(Math.round(30 + completedBattles.length * 5 + averageScore * 0.12), 18, 98);
+  const defense = clamp(Math.round(34 + expProgress * 0.58 + user.level * 3), 24, 99);
+
+  const nextLevel = LEVELS.find((level) => !progress.unlocked_levels.includes(level.id));
+  const currentLevel = nextLevel ?? LEVELS[LEVELS.length - 1];
+  const nextTargetTitle = `${currentLevel.visual.chapter} · ${currentLevel.title}`;
+  const nextTargetHint = currentLevel.background;
+
   return (
-    <main className="page-shell">
-      <header className="surface-card-strong p-5 md:p-6">
-        <div className="flex flex-wrap items-center gap-4">
-          {user.ai_avatar ? (
-            <Image
-              src={user.ai_avatar}
-              alt={user.ai_name}
-              width={72}
-              height={72}
-              className="rounded-full border border-[#ced6e2] object-cover"
-            />
-          ) : (
-            <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full border border-[#ced6e2] bg-[#edf3ff] text-2xl font-black text-[#2d6cdf]">
-              {user.ai_name.slice(0, 1)}
-            </div>
-          )}
-
-          <div className="flex-1">
-            <p className="kicker">My Agent</p>
-            <h1 className="section-title mt-1 text-3xl">{user.ai_name}</h1>
-            <p className="mt-1 text-sm text-[var(--ink-3)]">{user.ai_personality}</p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Link href="/levels" className="btn-primary">
-              进入关卡
-            </Link>
-            <a href="/api/auth" className="btn-ghost">
-              重新授权
-            </a>
-          </div>
-        </div>
-      </header>
-
-      <section className="mt-4 grid gap-3 md:grid-cols-3">
-        <article className="surface-card p-4">
-          <p className="kicker">Level</p>
-          <p className="mt-1 text-3xl font-black">Lv.{user.level}</p>
-          <p className="text-sm text-[var(--ink-3)]">{LEVEL_TITLE[user.level] || "修炼中"}</p>
-        </article>
-
-        <article className="surface-card p-4">
-          <p className="kicker">Experience</p>
-          <p className="mt-1 text-3xl font-black">{user.experience}</p>
-          <div className="progress-track mt-2">
-            <div className="progress-fill" style={{ width: `${expProgress}%` }} />
-          </div>
-          <p className="mt-1 text-xs text-[var(--ink-3)]">
-            进度 {Math.max(expProgress, 0)}% · 下一等级阈值 {nextThreshold}
-          </p>
-        </article>
-
-        <article className="surface-card p-4">
-          <p className="kicker">Campaign</p>
-          <p className="mt-1 text-3xl font-black">{progress.unlocked_levels.length}/8</p>
-          <p className="text-sm text-[var(--ink-3)]">已解锁关卡</p>
-        </article>
-      </section>
-
-      <section className="mt-4 surface-card p-4 md:p-5">
-        <h2 className="section-title text-2xl">最近战绩</h2>
-        {recentBattles.length === 0 ? (
-          <p className="mt-2 text-sm text-[var(--ink-3)]">暂无战绩，建议先挑战第 1 关建立基线。</p>
-        ) : (
-          <ul className="mt-3 space-y-2">
-            {recentBattles.map((battle) => {
-              const level = getLevelById(battle.level_id);
-
-              return (
-                <li key={battle.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#d7dce4] bg-white p-3">
-                  <div>
-                    <p className="text-sm font-semibold text-[var(--ink-2)]">{level?.title ?? `关卡 ${battle.level_id}`}</p>
-                    <p className="text-xs text-[var(--ink-3)]">
-                      状态：{battle.status === "completed" ? "已结算" : "进行中"}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm text-[var(--ink-2)]">
-                      {battle.total_score != null ? `分数 ${battle.total_score}` : "未结算"}
-                    </p>
-                    <Link
-                      href={battle.status === "completed" ? `/report/${battle.id}` : `/battle/${battle.level_id}`}
-                      className="btn-ghost"
-                    >
-                      {battle.status === "completed" ? "查看复盘" : "继续战斗"}
-                    </Link>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
-    </main>
+    <DashboardCommandCenter
+      aiName={user.ai_name}
+      aiAvatar={user.ai_avatar}
+      aiPersonality={user.ai_personality}
+      level={user.level}
+      levelTitle={LEVEL_TITLE[user.level] || "修炼中"}
+      experience={user.experience}
+      expProgress={Math.max(expProgress, 0)}
+      nextThreshold={nextThreshold}
+      unlockedCount={progress.unlocked_levels.length}
+      totalLevels={LEVELS.length}
+      clearedCount={clearedCount}
+      winRate={winRate}
+      nextTarget={nextTargetTitle}
+      nextTargetHint={nextTargetHint}
+      stats={[
+        { label: "Logic", value: logic, colorClass: "bg-cyan-400 shadow-[0_0_18px_rgba(34,211,238,0.55)]" },
+        { label: "Empathy", value: empathy, colorClass: "bg-indigo-400 shadow-[0_0_18px_rgba(129,140,248,0.45)]" },
+        { label: "Defense", value: defense, colorClass: "bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.5)]" },
+      ]}
+      recentBattles={recentBattles.map((battle) => {
+        const level = getLevelById(battle.level_id);
+        return {
+          id: battle.id,
+          title: level?.title ?? `关卡 ${battle.level_id}`,
+          status: battle.status,
+          totalScore: battle.total_score ?? null,
+          href: battle.status === "completed" ? `/report/${battle.id}` : `/battle/${battle.level_id}`,
+        };
+      })}
+    />
   );
 }

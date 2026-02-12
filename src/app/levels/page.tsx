@@ -1,15 +1,10 @@
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { LevelGalleryCard } from "@/components/LevelGalleryCard";
 import { getCurrentUser } from "@/lib/auth";
-import { getDifficultyLabel, LEVELS } from "@/lib/levels";
+import { LEVELS } from "@/lib/levels";
 import { getUserProgress } from "@/lib/store";
-import { buildLevelThemeStyle, fogTagClass } from "@/lib/theme";
-
-function stars(difficulty: 1 | 2 | 3): string {
-  return "★".repeat(difficulty) + "☆".repeat(3 - difficulty);
-}
 
 export default async function LevelsPage() {
   const user = await getCurrentUser();
@@ -19,84 +14,60 @@ export default async function LevelsPage() {
   }
 
   const progress = getUserProgress(user.id);
+  const unlockedCount = progress.unlocked_levels.length;
+  const clearedScores = Object.values(progress.level_best_scores);
+  const bestScore = clearedScores.length > 0 ? Math.max(...clearedScores) : 0;
 
   return (
-    <main className="page-shell">
-      <header className="surface-card p-5 md:p-6">
-        <p className="kicker">Campaign Lobby</p>
-        <h1 className="section-title mt-1 text-3xl md:text-4xl">八重迷雾关卡</h1>
-        <p className="mt-2 text-sm text-[var(--ink-3)]">
-          每一关都有独立角色、场景与色彩线索。前一关达到 60 分，自动解锁下一关。
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Link href="/dashboard" className="btn-ghost">
-            返回我的 AI
-          </Link>
-          <Link href="/" className="btn-ghost">
-            回到首页
-          </Link>
+    <main className="min-h-screen px-4 pb-10 pt-6 md:px-8 md:pt-8">
+      <header className="relative overflow-hidden rounded-[30px] border border-white/20 bg-[#0a1224] p-6 text-white shadow-[0_20px_56px_rgba(4,10,24,0.45)] md:p-8">
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          <div className="absolute -left-8 top-0 h-44 w-44 rounded-full bg-[#5e8dff]/35 blur-3xl" />
+          <div className="absolute bottom-0 right-6 h-48 w-48 rounded-full bg-[#20d2c5]/25 blur-3xl" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/10 to-transparent" />
+        </div>
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/65">Campaign Lobby</p>
+            <h1 className="mt-2 text-3xl font-black tracking-tight md:text-5xl">八重迷雾关卡</h1>
+            <p className="mt-3 text-sm leading-relaxed text-white/80 md:text-base">
+              选择一个情绪战场，进入沉浸式实战。前一关达到 60 分即可自动解锁下一关。
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2.5">
+              <Link
+                href="/dashboard"
+                className="inline-flex cursor-pointer items-center justify-center rounded-full border border-white/30 bg-white/10 px-4 py-2 text-sm font-semibold transition-colors duration-200 hover:bg-white/20"
+              >
+                返回我的 AI
+              </Link>
+              <Link
+                href="/"
+                className="inline-flex cursor-pointer items-center justify-center rounded-full border border-white/20 bg-black/20 px-4 py-2 text-sm font-semibold text-white/85 transition-colors duration-200 hover:bg-black/35"
+              >
+                回到首页
+              </Link>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-sm md:min-w-[280px]">
+            <article className="rounded-2xl border border-white/20 bg-black/30 px-4 py-3 backdrop-blur-sm">
+              <p className="text-xs uppercase tracking-[0.12em] text-white/60">已解锁</p>
+              <p className="mt-1 text-2xl font-black">{unlockedCount}</p>
+            </article>
+            <article className="rounded-2xl border border-white/20 bg-black/30 px-4 py-3 backdrop-blur-sm">
+              <p className="text-xs uppercase tracking-[0.12em] text-white/60">最高分</p>
+              <p className="mt-1 text-2xl font-black">{bestScore}</p>
+            </article>
+          </div>
         </div>
       </header>
 
-      <section className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <section className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {LEVELS.map((level) => {
           const unlocked = progress.unlocked_levels.includes(level.id);
           const bestScore = progress.level_best_scores[level.id] ?? null;
 
           return (
-            <article key={level.id} className="level-card" style={buildLevelThemeStyle(level)}>
-              <div className="level-card-cover" style={{ backgroundImage: `url(${level.visual.artwork.cover})` }}>
-                <div className="absolute inset-x-3 bottom-3 z-10 text-white">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/75">{level.visual.chapter}</p>
-                  <h2 className="mt-1 text-xl font-black">{level.title}</h2>
-                </div>
-              </div>
-
-              <div className="level-card-body">
-                <Image
-                  src={level.visual.artwork.portrait}
-                  alt={`${level.opponent_ai.name} 角色封面`}
-                  width={74}
-                  height={74}
-                  className="level-card-avatar"
-                />
-
-                <p className="text-sm leading-relaxed text-[var(--ink-2)]">{level.description}</p>
-
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <span className="level-chip">{level.visual.theme_name}</span>
-                  <span className="level-chip">{getDifficultyLabel(level.difficulty)}</span>
-                  <span className={fogTagClass(level.fog_type)}>{level.fog_type}</span>
-                </div>
-
-                <div className="mt-3 flex items-center justify-between text-sm text-[var(--ink-3)]">
-                  <span>难度 {stars(level.difficulty)}</span>
-                  <span>{level.rounds} 回合</span>
-                </div>
-
-                <div className="mt-2 text-xs text-[var(--ink-3)]">
-                  对手角色：{level.opponent_ai.name} · {level.opponent_ai.traits.join(" / ")}
-                </div>
-
-                {bestScore !== null ? (
-                  <div className="mt-2 text-sm font-semibold" style={{ color: level.visual.palette.primary }}>
-                    个人最高分：{bestScore}
-                  </div>
-                ) : null}
-
-                <div className="mt-4">
-                  {unlocked ? (
-                    <Link href={`/battle/${level.id}`} className="btn-primary w-full">
-                      进入本关
-                    </Link>
-                  ) : (
-                    <button className="btn-ghost w-full cursor-not-allowed opacity-60" disabled>
-                      关卡未解锁
-                    </button>
-                  )}
-                </div>
-              </div>
-            </article>
+            <LevelGalleryCard key={level.id} level={level} unlocked={unlocked} bestScore={bestScore} />
           );
         })}
       </section>

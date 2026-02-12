@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-import { buildLevelThemeStyle, fogTagClass } from "@/lib/theme";
 import type {
   BattleMode,
   BattleReport,
@@ -48,25 +48,35 @@ function fogLabel(fog?: Message["fog_tag"]): string {
   return "none";
 }
 
-function UserAvatar({ name, avatar }: { name: string; avatar?: string }) {
+function fogChipClass(fog?: Message["fog_tag"]): string {
+  if (fog === "fear") return "border-rose-300/60 bg-rose-500/15 text-rose-100";
+  if (fog === "obligation") return "border-amber-300/60 bg-amber-500/15 text-amber-100";
+  if (fog === "guilt") return "border-teal-300/60 bg-teal-500/15 text-teal-100";
+  return "border-white/30 bg-white/10 text-white/70";
+}
+
+function UserBadge({ name, avatar }: { name: string; avatar?: string }) {
   if (avatar) {
     return (
       <Image
         src={avatar}
         alt={name}
-        width={84}
-        height={84}
-        className="portrait-face"
+        width={34}
+        height={34}
+        className="h-[34px] w-[34px] rounded-full border border-white/25 object-cover"
       />
     );
   }
 
   return (
-    <div className="portrait-face flex items-center justify-center bg-[#edf3ff] text-2xl font-black text-[#2d6cdf]">
+    <span className="inline-flex h-[34px] w-[34px] items-center justify-center rounded-full border border-white/25 bg-white/10 text-sm font-bold">
       {name.slice(0, 1)}
-    </div>
+    </span>
   );
 }
+
+const actionButtonClass =
+  "inline-flex cursor-pointer items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-55";
 
 export default function BattleClient({ level, userAIName, userAvatar }: BattleClientProps) {
   const [session, setSession] = useState<ConversationRecord | null>(null);
@@ -75,6 +85,9 @@ export default function BattleClient({ level, userAIName, userAvatar }: BattleCl
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<BattleMode>("fast");
   const [levelUp, setLevelUp] = useState<BattleResult["levelUp"]>();
+
+  const shouldReduceMotion = useReducedMotion();
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const progressRatio =
     session && session.max_rounds > 0
@@ -92,6 +105,10 @@ export default function BattleClient({ level, userAIName, userAvatar }: BattleCl
 
     return summary;
   }, [session?.messages]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: shouldReduceMotion ? "auto" : "smooth" });
+  }, [session?.messages, loading, shouldReduceMotion]);
 
   async function oneClickBattle() {
     try {
@@ -165,188 +182,267 @@ export default function BattleClient({ level, userAIName, userAvatar }: BattleCl
     }
   }
 
+  const messages = session?.messages ?? [];
+
   return (
-    <section className="battle-stage p-4 md:p-6" style={buildLevelThemeStyle(level)}>
-      {/* 场景背景横幅 */}
-      <div className="scene-banner" style={{ backgroundImage: `url(${level.visual.artwork.scene})` }}>
-        <div className="scene-banner-content">
-          <p className="kicker text-white/70">{level.visual.chapter}</p>
-          <h1 className="section-title mt-1 text-2xl text-white md:text-3xl">{level.title}</h1>
-          <p className="mt-2 max-w-3xl text-sm text-white/85">{level.background}</p>
-          <div className="mt-3 flex flex-wrap gap-2 text-xs">
-            <span className="level-chip">{level.visual.theme_name}</span>
-            {level.learning_focus.map((focus) => (
-              <span key={focus} className="level-chip">
-                {focus}
-              </span>
-            ))}
-          </div>
-        </div>
+    <section className="relative min-h-screen overflow-hidden bg-[#040912] text-white">
+      <motion.div
+        className="absolute inset-0 z-0"
+        initial={shouldReduceMotion ? false : { scale: 1.06 }}
+        animate={shouldReduceMotion ? { scale: 1 } : { scale: [1.06, 1, 1.06] }}
+        transition={
+          shouldReduceMotion
+            ? undefined
+            : {
+                duration: 20,
+                repeat: Number.POSITIVE_INFINITY,
+                ease: "easeInOut",
+              }
+        }
+      >
+        <Image
+          src={level.visual.artwork.scene}
+          alt={`${level.title} 战斗场景`}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(255,255,255,0.18),transparent_32%)]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/55 to-black/90" />
+      </motion.div>
+
+      <div className="pointer-events-none absolute inset-0 z-[5]" aria-hidden="true">
+        <div
+          className="absolute -left-16 top-16 h-56 w-56 rounded-full blur-3xl"
+          style={{ backgroundColor: `${level.visual.palette.primary}66` }}
+        />
+        <div
+          className="absolute bottom-10 right-10 h-72 w-72 rounded-full blur-3xl"
+          style={{ backgroundColor: `${level.visual.palette.secondary}66` }}
+        />
       </div>
 
-      {/* 对战双方卡片 */}
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <article className="portrait-card flex items-center gap-3">
-          <div className="relative">
-            <Image
-              src={level.visual.artwork.portrait}
-              alt={`${level.opponent_ai.name} 角色头像`}
-              width={84}
-              height={84}
-              className="portrait-face"
-            />
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 border-2 border-white text-[10px] font-bold text-white shadow-lg">
-              VS
-            </span>
-          </div>
-          <div>
-            <p className="kicker">对手角色</p>
-            <h2 className="text-lg font-black" style={{ color: level.visual.palette.primary }}>
-              {level.opponent_ai.name}
-            </h2>
-            <p className="text-sm text-[var(--ink-3)]">{level.opponent_ai.traits.join(" / ")}</p>
-          </div>
-        </article>
-
-        <article className="portrait-card flex items-center gap-3">
-          <UserAvatar name={userAIName} avatar={userAvatar} />
-          <div>
-            <p className="kicker">你的 AI</p>
-            <h2 className="text-lg font-black text-[#20406f]">{userAIName}</h2>
-            <p className="text-sm text-[var(--ink-3)]">目标：稳情绪、立边界、提问题、给方案</p>
-          </div>
-        </article>
-      </div>
-
-      {/* 回合进度 */}
-      <div className="mt-4 surface-card p-3">
-        <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-          <p>
-            回合进度：
-            <strong>
-              {session?.current_round ?? 0}/{level.rounds}
-            </strong>
-          </p>
-          <p className="text-[var(--ink-3)]">
-            FOG：fear {fogSummary.fear} · obligation {fogSummary.obligation} · guilt {fogSummary.guilt}
-          </p>
-        </div>
-        <div className="progress-track mt-2">
-          <div className="progress-fill" style={{ width: `${progressRatio}%` }} />
-        </div>
-      </div>
-
-      {/* 对话区域 */}
-      <div className="mt-4 chat-box">
-        <div className="chat-background" style={{ backgroundImage: `url(${level.visual.artwork.scene})`, opacity: 0.08 }} />
-        <div className="relative z-10">
-          {(session?.messages ?? []).map((message, index) => {
-            const isOpponent = message.sender === "opponent_ai";
-            const roleName = isOpponent ? level.opponent_ai.name : userAIName;
-
-            return (
-              <article
-                key={`${message.timestamp}-${index}`}
-                className={`chat-entry ${isOpponent ? "opponent" : "self"}`}
-              >
-                {isOpponent ? (
-                  <div className="chat-avatar-wrapper">
-                    <Image
-                      src={level.visual.artwork.portrait}
-                      alt={level.opponent_ai.name}
-                      width={42}
-                      height={42}
-                      className="chat-avatar"
-                    />
-                  </div>
-                ) : (
-                  <div className="chat-avatar-wrapper">
-                    {userAvatar ? (
-                      <Image src={userAvatar} alt={userAIName} width={42} height={42} className="chat-avatar" />
-                    ) : (
-                      <div className="chat-avatar flex items-center justify-center text-xs font-bold text-[#2d6cdf]">
-                        {userAIName.slice(0, 1)}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div className="chat-bubble">
-                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] opacity-75">{roleName}</p>
-                  <p className="text-[15px] leading-relaxed">{message.text}</p>
-                  {isOpponent && message.fog_tag ? (
-                    <span className={`mt-2 inline-flex ${fogTagClass(message.fog_tag)}`}>
-                      {fogLabel(message.fog_tag)}
-                    </span>
-                  ) : null}
-                </div>
-              </article>
-            );
-          })}
-
-          {loading ? (
-            <div className="flex items-center gap-2 text-sm text-[var(--ink-3)]">
-              <div className="animate-spin w-4 h-4 border-2 border-[var(--ink-3)] border-t-transparent rounded-full" style={{ borderTopColor: level.visual.palette.primary }} />
-              系统正在推演本关对话...
-            </div>
-          ) : null}
-        </div>
-      </div>
-
-      {error ? (
-        <div className="mt-4 rounded-xl border border-[#e2bdc0] bg-[#fff4f5] px-3 py-2 text-sm text-[#8f2831]">
-          {error}
-        </div>
-      ) : null}
-
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <button onClick={oneClickBattle} disabled={loading} className="btn-primary disabled:cursor-not-allowed disabled:opacity-65">
-          一键自动完成本关
-        </button>
-
-        {!session ? (
-          <button onClick={startManualBattle} disabled={loading} className="btn-ghost disabled:cursor-not-allowed disabled:opacity-65">
-            逐轮模式（调试）
-          </button>
-        ) : session.status === "active" ? (
-          <button onClick={nextManualRound} disabled={loading} className="btn-ghost disabled:cursor-not-allowed disabled:opacity-65">
-            手动下一轮
-          </button>
-        ) : null}
-
-        <div className="ml-auto flex items-center gap-2 text-sm">
-          <label htmlFor="battle-mode" className="text-[var(--ink-3)]">
-            推演模式
-          </label>
-          <select
-            id="battle-mode"
-            value={mode}
-            onChange={(event) => setMode(event.target.value as BattleMode)}
-            className="rounded-lg border border-[#c7ced8] bg-white px-2 py-1 text-sm"
-          >
-            <option value="fast">fast（推荐，游戏感）</option>
-            <option value="real">real（调用外部AI）</option>
-          </select>
-        </div>
-      </div>
-
-      {session?.status === "completed" && report ? (
-        <div className="mt-4 surface-card p-4">
-          <p className="text-sm">
-            本关完成：<strong>{report.total_score}</strong> 分，评级 <strong>{report.grade}</strong>
-          </p>
-          {levelUp?.leveledUp ? (
-            <p className="mt-1 text-sm text-[var(--ink-3)]">
-              等级提升：Lv.{levelUp.oldLevel} → Lv.{levelUp.newLevel}
-            </p>
-          ) : null}
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Link href={`/report/${session.id}`} className="btn-primary">
-              查看学习复盘
-            </Link>
-            <Link href="/levels" className="btn-ghost">
+      <header className="absolute inset-x-0 top-0 z-20 px-4 pb-3 pt-4 md:px-8 md:pt-6">
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/20 bg-black/35 px-4 py-3 backdrop-blur-md">
+          <div className="flex items-center gap-3 md:gap-4">
+            <Link
+              href="/levels"
+              className="inline-flex cursor-pointer items-center rounded-full border border-white/30 bg-black/25 px-3 py-1.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-white/20"
+            >
               返回关卡大厅
             </Link>
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-white/65">{level.visual.chapter}</p>
+              <h1 className="text-lg font-black tracking-tight text-white md:text-xl">{level.title}</h1>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="hidden text-right md:block">
+              <p className="text-xs text-white/65">FOG</p>
+              <p className="text-sm font-semibold text-white/90">
+                fear {fogSummary.fear} · obligation {fogSummary.obligation} · guilt {fogSummary.guilt}
+              </p>
+            </div>
+            <div className="min-w-[150px]">
+              <p className="text-right text-xs font-mono text-white/70">
+                ROUND {session?.current_round ?? 0} / {level.rounds}
+              </p>
+              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/20">
+                <motion.div
+                  className="h-full"
+                  style={{ backgroundColor: level.visual.palette.primary }}
+                  initial={false}
+                  animate={{ width: `${progressRatio}%` }}
+                  transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.35 }}
+                />
+              </div>
+            </div>
+            <div className="hidden items-center gap-2 rounded-full border border-white/20 bg-white/10 px-2 py-1 text-xs text-white/85 md:flex">
+              <UserBadge name={userAIName} avatar={userAvatar} />
+              <span>{userAIName}</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 flex w-full items-end justify-center px-2 md:justify-end md:pr-12">
+        <motion.div
+          className="relative h-[66vh] w-[92vw] md:h-[88vh] md:w-[40vw]"
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 24, x: 18 }}
+          animate={{ opacity: 1, y: 0, x: 0 }}
+          transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.8, ease: "easeOut" }}
+        >
+          <Image
+            src={level.visual.artwork.portrait}
+            alt={`${level.opponent_ai.name} 立绘`}
+            fill
+            sizes="(max-width: 768px) 95vw, 40vw"
+            className="object-contain object-bottom drop-shadow-[0_0_32px_rgba(0,0,0,0.55)]"
+          />
+        </motion.div>
+      </div>
+
+      <section className="absolute inset-x-0 bottom-0 z-30 pb-4 md:pb-8">
+        <div className="mx-auto w-full max-w-5xl px-3 md:px-6">
+          <div className="rounded-3xl border border-white/20 bg-black/40 p-3 backdrop-blur-xl shadow-[0_22px_48px_rgba(0,0,0,0.45)] md:p-5">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-white/85">对话流（Visual Novel 模式）</p>
+              <p className="text-xs text-white/65">对手：{level.opponent_ai.name}</p>
+            </div>
+
+            <div
+              className="mt-3 h-[34vh] space-y-3 overflow-y-auto pr-1 md:h-[38vh] md:pr-2"
+              style={{ maskImage: "linear-gradient(to bottom, transparent 0%, black 10%, black 92%, transparent 100%)" }}
+            >
+              {messages.length === 0 && !loading ? (
+                <div className="rounded-2xl border border-white/15 bg-black/35 px-4 py-5 text-sm text-white/75">
+                  点击「一键自动完成本关」或「逐轮模式」开始战斗。
+                </div>
+              ) : null}
+
+              <AnimatePresence initial={false}>
+                {messages.map((message, index) => {
+                  const isOpponent = message.sender === "opponent_ai";
+                  const roleName = isOpponent ? level.opponent_ai.name : userAIName;
+
+                  return (
+                    <motion.article
+                      key={`${message.timestamp}-${index}`}
+                      className={`flex w-full ${isOpponent ? "justify-start" : "justify-end"}`}
+                      initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={shouldReduceMotion ? undefined : { opacity: 0, y: -10 }}
+                      transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.22 }}
+                    >
+                      <div
+                        className={`max-w-[88%] rounded-2xl border px-4 py-3 md:max-w-[74%] md:px-5 md:py-4 ${
+                          isOpponent
+                            ? "rounded-tl-sm border-white/20 bg-black/60 text-white"
+                            : "rounded-tr-sm border-white/45 bg-white/92 text-slate-900"
+                        }`}
+                        style={
+                          isOpponent
+                            ? {
+                                borderLeftWidth: 4,
+                                borderLeftColor: level.visual.palette.primary,
+                              }
+                            : undefined
+                        }
+                      >
+                        <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.09em] opacity-70">{roleName}</p>
+                        <p className="whitespace-pre-wrap text-sm leading-relaxed md:text-base">{message.text}</p>
+                        {isOpponent && message.fog_tag ? (
+                          <span
+                            className={`mt-2 inline-flex rounded-md border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${fogChipClass(
+                              message.fog_tag
+                            )}`}
+                          >
+                            {fogLabel(message.fog_tag)}
+                          </span>
+                        ) : null}
+                      </div>
+                    </motion.article>
+                  );
+                })}
+              </AnimatePresence>
+
+              {loading ? (
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-black/45 px-3 py-1.5 text-xs text-white/80">
+                  <span
+                    className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/60 border-t-transparent"
+                    aria-hidden="true"
+                  />
+                  系统正在推演本关对话...
+                </div>
+              ) : null}
+
+              <div ref={messagesEndRef} />
+            </div>
+
+            {error ? (
+              <div className="mt-3 rounded-xl border border-rose-300/55 bg-rose-500/15 px-3 py-2 text-sm text-rose-100">
+                {error}
+              </div>
+            ) : null}
+
+            <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={oneClickBattle}
+                  disabled={loading}
+                  className={`${actionButtonClass} border-white/70 bg-white text-slate-900 hover:bg-slate-100`}
+                >
+                  一键自动完成本关
+                </button>
+
+                {!session ? (
+                  <button
+                    onClick={startManualBattle}
+                    disabled={loading}
+                    className={`${actionButtonClass} border-white/35 bg-black/30 text-white hover:bg-white/15`}
+                  >
+                    逐轮模式（调试）
+                  </button>
+                ) : session.status === "active" ? (
+                  <button
+                    onClick={nextManualRound}
+                    disabled={loading}
+                    className={`${actionButtonClass} border-white/35 bg-black/30 text-white hover:bg-white/15`}
+                  >
+                    手动下一轮
+                  </button>
+                ) : null}
+
+                <Link
+                  href="/levels"
+                  className={`${actionButtonClass} border-white/25 bg-transparent text-white/85 hover:bg-white/15`}
+                >
+                  退出本局
+                </Link>
+              </div>
+
+              <label htmlFor="battle-mode" className="flex items-center gap-2 text-sm text-white/80 lg:justify-self-end">
+                推演模式
+                <select
+                  id="battle-mode"
+                  value={mode}
+                  onChange={(event) => setMode(event.target.value as BattleMode)}
+                  className="cursor-pointer rounded-lg border border-white/35 bg-black/35 px-2.5 py-1.5 text-sm text-white outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+                >
+                  <option value="fast">fast（推荐，游戏感）</option>
+                  <option value="real">real（调用外部AI）</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {session?.status === "completed" && report ? (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-3xl border border-white/20 bg-[#0b1322]/95 p-6 text-white shadow-[0_18px_42px_rgba(0,0,0,0.45)]">
+            <p className="text-xs uppercase tracking-[0.18em] text-white/55">Battle Finished</p>
+            <h2 className="mt-2 text-3xl font-black">评分 {report.total_score}</h2>
+            <p className="mt-1 text-base text-white/85">评级 {report.grade}</p>
+            {levelUp?.leveledUp ? (
+              <p className="mt-2 text-sm text-white/75">等级提升：Lv.{levelUp.oldLevel} → Lv.{levelUp.newLevel}</p>
+            ) : null}
+            <div className="mt-5 grid gap-2">
+              <Link
+                href={`/report/${session.id}`}
+                className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-white/70 bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 transition-colors duration-200 hover:bg-slate-100"
+              >
+                查看学习复盘
+              </Link>
+              <Link
+                href="/levels"
+                className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-white/30 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-white/20"
+              >
+                返回关卡大厅
+              </Link>
+            </div>
           </div>
         </div>
       ) : null}
