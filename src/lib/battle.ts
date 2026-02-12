@@ -16,7 +16,7 @@ export async function finalizeConversation(args: {
   }
 
   const report = calculateScore(conversation.messages);
-  const rewardResult = applyBattleRewards({
+  const rewardResult = await applyBattleRewards({
     userId: user.id,
     levelId: level.id,
     report,
@@ -34,7 +34,7 @@ export async function finalizeConversation(args: {
     learning_sheet: report.learning_sheet,
   };
 
-  saveConversation(completedConversation);
+  await saveConversation(completedConversation);
 
   const fogCount =
     report.fog_analysis.fear_count +

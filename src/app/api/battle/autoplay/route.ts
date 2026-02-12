@@ -27,8 +27,8 @@ export async function POST(request: Request) {
     return notFound("关卡不存在");
   }
 
-  if (!isLevelUnlocked(user.id, levelId)) {
-    const progress = getUserProgress(user.id);
+  if (!(await isLevelUnlocked(user.id, levelId))) {
+    const progress = await getUserProgress(user.id);
     return forbidden(`关卡未解锁。已解锁关卡：${progress.unlocked_levels.join(", ")}`);
   }
 

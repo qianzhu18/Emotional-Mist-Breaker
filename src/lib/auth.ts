@@ -15,7 +15,7 @@ export async function getCurrentUser(): Promise<UserRecord | null> {
     return null;
   }
 
-  return getUserById(sessionCookie.value);
+  return await getUserById(sessionCookie.value);
 }
 
 export function setSessionCookie(response: NextResponse, userId: string): void {

@@ -30,8 +30,8 @@ export default async function DashboardPage() {
     redirect("/");
   }
 
-  const progress = getUserProgress(user.id);
-  const allBattles = listConversationsByUser(user.id);
+  const progress = await getUserProgress(user.id);
+  const allBattles = await listConversationsByUser(user.id);
   const recentBattles = allBattles.slice(0, 6);
   const completedBattles = allBattles.filter((battle) => battle.status === "completed");
   const winCount = completedBattles.filter((battle) => (battle.total_score ?? 0) >= 60).length;

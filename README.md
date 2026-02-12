@@ -29,6 +29,7 @@ A2A（AI 对 AI）情感勒索识别训练应用。用户通过 SecondMe OAuth �
 - `SECONDME_REDIRECT_URI=http://localhost:3006/api/auth/callback`
 - `SILICONFLOW_API_KEY`（对手 AI，可选）
 - `SILICONFLOW_MODEL`（可选）
+- `DATABASE_URL`（生产环境强烈建议，PostgreSQL/Supabase）
 
 ## 运行
 
@@ -41,6 +42,8 @@ npm run dev
 
 ## 说明
 
-- 当前数据存储是内存实现，重启服务会丢失会话。
-- 数据库结构草案在 `db/schema.sql`，可继续接入 PostgreSQL。
+- 未配置 `DATABASE_URL` 时，会使用内存存储（重启后会丢失会话）。
+- 配置 `DATABASE_URL` 后，用户/进度/战斗会持久化到 PostgreSQL（推荐 Supabase）。
+- 数据库结构见 `db/schema.sql`。
+- Supabase 从零实操见 `dev-docs/Supabase-From-Zero.md`。
 - 重构文档见 `dev-docs/DevSpec.md`。

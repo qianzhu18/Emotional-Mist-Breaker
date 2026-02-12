@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     return badRequest("缺少sessionId");
   }
 
-  const session = getConversationById(body.sessionId);
+  const session = await getConversationById(body.sessionId);
 
   if (!session) {
     return notFound("对话会话不存在");

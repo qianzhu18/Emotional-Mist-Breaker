@@ -37,7 +37,7 @@ export default async function BattlePage({
     );
   }
 
-  if (!isLevelUnlocked(user.id, level.id)) {
+  if (!(await isLevelUnlocked(user.id, level.id))) {
     return (
       <main className="min-h-screen px-4 py-8 md:px-8">
         <section className="mx-auto max-w-2xl rounded-3xl border border-white/20 bg-[#0b1323] p-8 text-white shadow-[0_18px_42px_rgba(0,0,0,0.32)]">

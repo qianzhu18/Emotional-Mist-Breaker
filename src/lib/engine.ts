@@ -28,7 +28,7 @@ export async function openBattleSession(args: {
   mode: BattleMode;
 }): Promise<ConversationRecord> {
   const { userId, level, mode } = args;
-  const session = createConversation(userId, level);
+  const session = await createConversation(userId, level);
 
   const openingOpponentLine = await generateOpponentReply({
     level,
@@ -37,7 +37,7 @@ export async function openBattleSession(args: {
     mode,
   });
 
-  return appendMessage(session, {
+  return await appendMessage(session, {
     sender: "opponent_ai",
     text: openingOpponentLine,
     fog_tag: detectFogType(openingOpponentLine),
@@ -88,7 +88,7 @@ export async function advanceBattleSession(args: {
     mode,
   });
 
-  let updatedSession = appendMessage(session, {
+  let updatedSession = await appendMessage(session, {
     sender: "user_ai",
     text: userLine,
   });
@@ -97,7 +97,7 @@ export async function advanceBattleSession(args: {
     ...updatedSession,
     current_round: updatedSession.current_round + 1,
   };
-  saveConversation(updatedSession);
+  await saveConversation(updatedSession);
 
   if (updatedSession.current_round >= updatedSession.max_rounds) {
     const result = await finalizeConversation({ conversation: updatedSession, user });
@@ -123,7 +123,7 @@ export async function advanceBattleSession(args: {
     mode,
   });
 
-  updatedSession = appendMessage(updatedSession, {
+  updatedSession = await appendMessage(updatedSession, {
     sender: "opponent_ai",
     text: opponentLine,
     fog_tag: detectFogType(opponentLine),
@@ -160,7 +160,7 @@ export async function autoRunBattle(args: {
     }
   }
 
-  const persisted = getConversationById(session.id);
+  const persisted = await getConversationById(session.id);
 
   if (persisted && persisted.status === "completed") {
     return {

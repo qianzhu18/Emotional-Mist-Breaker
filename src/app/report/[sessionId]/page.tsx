@@ -23,7 +23,7 @@ export default async function ReportPage({
   }
 
   const { sessionId } = await params;
-  const session = getConversationById(sessionId);
+  const session = await getConversationById(sessionId);
 
   if (!session || session.user_id !== user.id) {
     redirect("/levels");

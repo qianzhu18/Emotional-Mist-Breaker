@@ -14,7 +14,7 @@ export async function GET(
   }
 
   const { sessionId } = await context.params;
-  const session = getConversationById(sessionId);
+  const session = await getConversationById(sessionId);
 
   if (!session) {
     return notFound("战报不存在");

@@ -13,7 +13,7 @@ export default async function LevelsPage() {
     redirect("/");
   }
 
-  const progress = getUserProgress(user.id);
+  const progress = await getUserProgress(user.id);
   const unlockedCount = progress.unlocked_levels.length;
   const clearedScores = Object.values(progress.level_best_scores);
   const bestScore = clearedScores.length > 0 ? Math.max(...clearedScores) : 0;

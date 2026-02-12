@@ -9,8 +9,8 @@ export async function GET() {
     return unauthorized();
   }
 
-  const progress = getUserProgress(user.id);
-  const recentConversations = listConversationsByUser(user.id).slice(0, 5);
+  const progress = await getUserProgress(user.id);
+  const recentConversations = (await listConversationsByUser(user.id)).slice(0, 5);
 
   return ok({
     user,

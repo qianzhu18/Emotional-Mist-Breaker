@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     const accessToken = await exchangeCodeForAccessToken(code);
     const profile = await fetchSecondMeProfile(accessToken);
 
-    const user = upsertUser({
+    const user = await upsertUser({
       secondme_user_id: profile.secondmeUserId,
       access_token: accessToken,
       ai_id: profile.aiId,

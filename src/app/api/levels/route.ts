@@ -10,7 +10,7 @@ export async function GET() {
     return unauthorized();
   }
 
-  const progress = getUserProgress(user.id);
+  const progress = await getUserProgress(user.id);
 
   const levels = LEVELS.map((level) => ({
     ...level,
