@@ -1,0 +1,374 @@
+@import "tailwindcss";
+
+:root {
+  --ink-1: #101317;
+  --ink-2: #2a313b;
+  --ink-3: #5f6b7a;
+  --paper-1: #f6f4ef;
+  --paper-2: #ffffff;
+  --line-1: #d8d2c7;
+  --shadow-1: rgba(16, 19, 23, 0.08);
+  --shadow-2: rgba(16, 19, 23, 0.16);
+  --brand: #2d6cdf;
+}
+
+@theme inline {
+  --font-sans: var(--font-cn);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--ink-1);
+  font-family: var(--font-cn), "Noto Sans SC", sans-serif;
+  background:
+    radial-gradient(circle at 8% -5%, rgba(222, 189, 138, 0.28), transparent 30%),
+    radial-gradient(circle at 90% 5%, rgba(130, 173, 227, 0.22), transparent 28%),
+    linear-gradient(180deg, #f9f7f2 0%, #f2eee4 100%);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.page-shell {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 18px 40px;
+}
+
+.surface-card {
+  border-radius: 20px;
+  border: 1px solid var(--line-1);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 28px var(--shadow-1);
+}
+
+.surface-card-strong {
+  border-radius: 20px;
+  border: 1px solid #c7ccd3;
+  background: var(--paper-2);
+  box-shadow: 0 14px 36px var(--shadow-2);
+}
+
+.btn-primary,
+.btn-ghost,
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 12px;
+  padding: 11px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.btn-primary {
+  border: none;
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand), #2056b3);
+  box-shadow: 0 8px 20px rgba(45, 108, 223, 0.25);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(45, 108, 223, 0.3);
+}
+
+.btn-ghost {
+  border: 1px solid #b8bec8;
+  color: var(--ink-2);
+  background: #fff;
+}
+
+.btn-ghost:hover {
+  background: #f6f8fb;
+}
+
+.btn-danger {
+  border: 1px solid #e1b8bc;
+  color: #9a2f39;
+  background: #fff6f7;
+}
+
+.btn-danger:hover {
+  background: #ffeef0;
+}
+
+.section-title {
+  margin: 0;
+  font-family: var(--font-display), "Space Grotesk", sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.kicker {
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.level-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid color-mix(in srgb, var(--level-primary, #2d6cdf) 24%, white);
+  color: color-mix(in srgb, var(--level-primary, #2d6cdf) 82%, #102138);
+  background: color-mix(in srgb, var(--level-tertiary, #dbe7ff) 55%, white);
+}
+
+.level-card {
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid #d3d7de;
+  background: #fff;
+  box-shadow: 0 12px 30px var(--shadow-1);
+}
+
+.level-card-cover {
+  position: relative;
+  height: 172px;
+  background-size: cover;
+  background-position: center;
+}
+
+.level-card-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 22%, rgba(9, 12, 18, 0.64) 100%);
+}
+
+.level-card-body {
+  position: relative;
+  padding: 16px;
+}
+
+.level-card-avatar {
+  position: absolute;
+  top: -36px;
+  right: 14px;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  object-fit: cover;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+}
+
+.tag-fear,
+.tag-obligation,
+.tag-guilt {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tag-fear {
+  color: #8f2831;
+  background: #f8d7dc;
+}
+
+.tag-obligation {
+  color: #7a4b00;
+  background: #fde7bc;
+}
+
+.tag-guilt {
+  color: #12624f;
+  background: #c9efe5;
+}
+
+.battle-stage {
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--level-primary) 20%, #ccd2db);
+  background: linear-gradient(160deg, #fff, color-mix(in srgb, var(--level-tertiary) 48%, #fff));
+  box-shadow: 0 14px 36px var(--shadow-2);
+}
+
+.scene-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  min-height: 172px;
+  background-size: cover;
+  background-position: center;
+}
+
+.scene-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, rgba(6, 10, 16, 0.68) 0%, rgba(10, 14, 20, 0.28) 58%, rgba(10, 14, 20, 0.12) 100%);
+}
+
+.scene-banner-content {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+  padding: 16px;
+}
+
+.portrait-card {
+  border-radius: 16px;
+  border: 1px solid #d7dbe2;
+  background: #fff;
+  padding: 14px;
+}
+
+.portrait-face {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #fff;
+  box-shadow: 0 8px 16px rgba(15, 23, 34, 0.2);
+}
+
+.chat-box {
+  position: relative;
+  max-height: 440px;
+  overflow-y: auto;
+  border-radius: 18px;
+  border: 1px solid #d5dae2;
+  background: #fbfcfe;
+  padding: 14px;
+}
+
+.chat-background {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  pointer-events: none;
+}
+
+.chat-avatar-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.chat-avatar-wrapper .chat-avatar {
+  width: 42px;
+  height: 42px;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.chat-entry {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.chat-entry.self {
+  flex-direction: row-reverse;
+}
+
+.chat-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid #d4d9e2;
+  background: #fff;
+}
+
+.chat-bubble {
+  max-width: min(78%, 660px);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.55;
+  border: 1px solid transparent;
+}
+
+.chat-entry.opponent .chat-bubble {
+  color: #fff;
+  background: linear-gradient(135deg, var(--level-primary), var(--level-secondary));
+  border-color: color-mix(in srgb, var(--level-primary) 35%, black);
+}
+
+.chat-entry.self .chat-bubble {
+  color: #182233;
+  background: color-mix(in srgb, var(--level-tertiary) 52%, white);
+  border-color: color-mix(in srgb, var(--level-primary) 20%, #d5dae2);
+}
+
+.progress-track {
+  height: 9px;
+  border-radius: 999px;
+  background: #d7dde6;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--level-primary), var(--level-secondary));
+  transition: width 240ms ease;
+}
+
+.score-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.study-block {
+  border-radius: 14px;
+  border: 1px solid #d6dbe3;
+  background: #fff;
+  padding: 12px;
+}
+
+.study-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+@media (max-width: 900px) {
+  .page-shell {
+    padding: 18px 12px 30px;
+  }
+
+  .chat-bubble {
+    max-width: 88%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

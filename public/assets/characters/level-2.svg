@@ -1,0 +1,25 @@
+<svg width="600" height="800" viewBox="0 0 600 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffd7a8"/>
+      <stop offset="100%" stop-color="#f28a5d"/>
+    </linearGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#d84a45"/>
+      <stop offset="100%" stop-color="#1a1a1a"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="800" rx="40" fill="url(#bg)"/>
+  <circle cx="300" cy="230" r="150" fill="url(#hair)"/>
+  <ellipse cx="300" cy="280" rx="120" ry="140" fill="#f8e7de"/>
+  <path d="M220 205C255 170 345 170 380 205" stroke="#2b2523" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="255" cy="270" r="14" fill="#2c2a30"/>
+  <circle cx="345" cy="270" r="14" fill="#2c2a30"/>
+  <path d="M262 330C280 352 320 352 338 330" stroke="#8f4a49" stroke-width="9" stroke-linecap="round" fill="none"/>
+  <rect x="130" y="430" width="340" height="280" rx="42" fill="#d84a45" fill-opacity="0.9"/>
+  <rect x="170" y="485" width="260" height="18" rx="9" fill="#ffffff" fill-opacity="0.65"/>
+  <rect x="170" y="535" width="220" height="16" rx="8" fill="#ffffff" fill-opacity="0.45"/>
+  <rect x="170" y="579" width="180" height="16" rx="8" fill="#ffffff" fill-opacity="0.35"/>
+  <text x="48" y="92" font-size="28" fill="#1f1f24" font-family="Arial, sans-serif" opacity="0.75">LEVEL 2</text>
+  <text x="48" y="132" font-size="42" fill="#1f1f24" font-weight="700" font-family="Arial, sans-serif">小美</text>
+</svg>
